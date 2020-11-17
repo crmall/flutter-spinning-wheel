@@ -4,6 +4,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinning_wheel/src/utils.dart';
 
+typedef SpinningWheelCallback = void Function(int currentDivider);
+
 /// Returns a widget which displays a rotating image.
 /// This widget can be interacted with with drag gestures and could be used as a "fortune wheel".
 ///
@@ -17,8 +19,8 @@ class SpinningWheel extends StatefulWidget {
   /// height used by the container with the image
   final double height;
 
-  /// image that will be used as wheel
-  final Image image;
+  /// widget that will be used as wheel
+  final Widget child;
 
   /// number of equal divisions in the wheel
   final int dividers;
@@ -53,18 +55,18 @@ class SpinningWheel extends StatefulWidget {
   final double secondaryImageLeft;
 
   /// callback function to be executed when the wheel selection changes
-  final Function onUpdate;
+  final SpinningWheelCallback onUpdate;
 
   /// callback function to be executed when the animation stops
-  final Function onEnd;
+  final SpinningWheelCallback onEnd;
 
   /// Stream<double> used to trigger an animation
   /// if triggered in an animation it will stop it, unless canInteractWhileSpinning is false
   /// the parameter is a double for pixelsPerSecond in axis Y, which defaults to 8000.0 as a medium-high velocity
-  final Stream shouldStartOrStop;
+  final Stream<double> shouldStartOrStop;
 
-  SpinningWheel(
-    this.image, {
+  SpinningWheel({
+    @required this.child,
     @required this.width,
     @required this.height,
     @required this.dividers,
@@ -82,15 +84,13 @@ class SpinningWheel extends StatefulWidget {
   })  : assert(width > 0.0 && height > 0.0),
         assert(spinResistance > 0.0 && spinResistance <= 1.0),
         assert(initialSpinAngle >= 0.0 && initialSpinAngle <= (2 * pi)),
-        assert(secondaryImage == null ||
-            (secondaryImageHeight <= height && secondaryImageWidth <= width));
+        assert(secondaryImage == null || (secondaryImageHeight <= height && secondaryImageWidth <= width));
 
   @override
   _SpinningWheelState createState() => _SpinningWheelState();
 }
 
-class _SpinningWheelState extends State<SpinningWheel>
-    with SingleTickerProviderStateMixin {
+class _SpinningWheelState extends State<SpinningWheel> with SingleTickerProviderStateMixin {
   AnimationController _animationController;
   Animation<double> _animation;
 
@@ -146,8 +146,7 @@ class _SpinningWheelState extends State<SpinningWheel>
       vsync: this,
       duration: Duration(seconds: 0),
     );
-    _animation = Tween(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(parent: _animationController, curve: Curves.linear));
+    _animation = Tween(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOut));
 
     _dividerAngle = _motion.anglePerDivision(widget.dividers);
     _initialSpinAngle = widget.initialSpinAngle;
@@ -174,18 +173,13 @@ class _SpinningWheelState extends State<SpinningWheel>
     }
   }
 
-  double get topSecondaryImage =>
-      widget.secondaryImageTop ??
-      (widget.height / 2) - (widget.secondaryImageHeight / 2);
+  double get topSecondaryImage => widget.secondaryImageTop ?? (widget.height / 2) - (widget.secondaryImageHeight / 2);
 
-  double get leftSecondaryImage =>
-      widget.secondaryImageLeft ??
-      (widget.width / 2) - (widget.secondaryImageWidth / 2);
+  double get leftSecondaryImage => widget.secondaryImageLeft ?? (widget.width / 2) - (widget.secondaryImageWidth / 2);
 
   double get widthSecondaryImage => widget.secondaryImageWidth ?? widget.width;
 
-  double get heightSecondaryImage =>
-      widget.secondaryImageHeight ?? widget.height;
+  double get heightSecondaryImage => widget.secondaryImageHeight ?? widget.height;
 
   @override
   Widget build(BuildContext context) {
@@ -193,22 +187,26 @@ class _SpinningWheelState extends State<SpinningWheel>
       height: widget.height,
       width: widget.width,
       child: Stack(
+        clipBehavior: Clip.none,
+        overflow: Overflow.visible,
         children: [
-          GestureDetector(
-            onPanUpdate: _moveWheel,
-            onPanEnd: _startAnimationOnPanEnd,
-            onPanDown: (_details) => _stopAnimation(),
-            child: AnimatedBuilder(
-                animation: _animation,
-                child: Container(child: widget.image),
-                builder: (context, child) {
-                  _updateAnimationValues();
-                  widget.onUpdate(_currentDivider);
-                  return Transform.rotate(
-                    angle: _initialSpinAngle + _currentDistance,
-                    child: child,
-                  );
-                }),
+          Positioned.fill(
+            child: GestureDetector(
+              onPanUpdate: _moveWheel,
+              onPanEnd: _startAnimationOnPanEnd,
+              onPanDown: (_details) => _stopAnimation(),
+              child: AnimatedBuilder(
+                  animation: _animation,
+                  child: widget.child,
+                  builder: (context, child) {
+                    _updateAnimationValues();
+                    if (widget.onUpdate != null) widget.onUpdate(_currentDivider);
+                    return Transform.rotate(
+                      angle: _initialSpinAngle + _currentDistance,
+                      child: child,
+                    );
+                  }),
+            ),
           ),
           widget.secondaryImage != null
               ? Positioned(
@@ -226,8 +224,7 @@ class _SpinningWheelState extends State<SpinningWheel>
   }
 
   // user can interact only if widget allows or wheel is not spinning
-  bool get _userCanInteract =>
-      !_animationController.isAnimating || widget.canInteractWhileSpinning;
+  bool get _userCanInteract => !_animationController.isAnimating || widget.canInteractWhileSpinning;
 
   // transforms from global coordinates to local and store the value
   void _updateLocalPosition(Offset position) {
@@ -245,8 +242,7 @@ class _SpinningWheelState extends State<SpinningWheel>
     if (_animationController.isAnimating) {
       // calculate total distance covered
       var currentTime = _totalDuration * _animation.value;
-      _currentDistance =
-          _motion.distance(_initialCircularVelocity, currentTime);
+      _currentDistance = _motion.distance(_initialCircularVelocity, currentTime);
       if (_isBackwards) {
         _currentDistance = -_currentDistance;
       }
@@ -290,7 +286,7 @@ class _SpinningWheelState extends State<SpinningWheel>
     _animationController.stop();
     _animationController.reset();
 
-    widget.onEnd(_currentDivider);
+    if (widget.onEnd != null) widget.onEnd(_currentDivider);
   }
 
   void _startAnimationOnPanEnd(DragEndDetails details) {
@@ -310,16 +306,14 @@ class _SpinningWheelState extends State<SpinningWheel>
   }
 
   void _startAnimation(Offset pixelsPerSecond) {
-    var velocity =
-        _spinVelocity.getVelocity(_localPositionOnPanUpdate, pixelsPerSecond);
+    var velocity = _spinVelocity.getVelocity(_localPositionOnPanUpdate, pixelsPerSecond);
 
     _localPositionOnPanUpdate = null;
     _isBackwards = velocity < 0;
     _initialCircularVelocity = pixelsPerSecondToRadians(velocity.abs());
     _totalDuration = _motion.duration(_initialCircularVelocity);
 
-    _animationController.duration =
-        Duration(milliseconds: (_totalDuration * 1000).round());
+    _animationController.duration = Duration(milliseconds: (_totalDuration * 2000).round());
 
     _animationController.reset();
     _animationController.forward();
