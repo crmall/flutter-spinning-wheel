@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:math';
 
+import 'package:example/pie_clipper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_spinning_wheel/flutter_spinning_wheel.dart';
@@ -37,7 +39,7 @@ class MyHomePage extends StatelessWidget {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => Basic()),
+                      MaterialPageRoute(builder: (context) => CustomRoulette()),
                     );
                   }),
             ),
@@ -76,6 +78,96 @@ class MyHomePage extends StatelessWidget {
   }
 }
 
+class CustomRoulette extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        width: 200,
+        height: 200,
+        child: PiePart(
+          child: Container(
+            color: Colors.green,
+            width: 100,
+            height: 100,
+          ),
+        ),
+        // child: Triangle(
+        //   child: Container(
+        //     color: Colors.red,
+        //     width: 100,
+        //     height: 100,
+        //   ),
+        //   edge: Edge.TOP,
+        //   trianglePercentLeft: 0,
+        //   trianglePercentRight: 0.5,
+        //   trianglePercentEdge: 0.5,
+        // ),
+        // child: QuarterCircle(
+        //   circleAlignment: CircleAlignment.topLeft,
+        // ),
+      ),
+    );
+  }
+}
+
+enum CircleAlignment {
+  topLeft,
+  topRight,
+  bottomLeft,
+  bottomRight,
+}
+
+class QuarterCircle extends StatelessWidget {
+  final CircleAlignment circleAlignment;
+  final Color color;
+
+  const QuarterCircle({
+    this.color = Colors.grey,
+    this.circleAlignment = CircleAlignment.topLeft,
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.expand(
+      child: ClipRect(
+        child: CustomPaint(
+          painter: QuarterCirclePainter(
+            circleAlignment: circleAlignment,
+            color: color,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class QuarterCirclePainter extends CustomPainter {
+  final CircleAlignment circleAlignment;
+  final Color color;
+
+  const QuarterCirclePainter({this.circleAlignment, this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final radius = math.min(size.height, size.width);
+    final offset = circleAlignment == CircleAlignment.topLeft
+        ? Offset(.0, .0)
+        : circleAlignment == CircleAlignment.topRight
+            ? Offset(size.width, .0)
+            : circleAlignment == CircleAlignment.bottomLeft
+                ? Offset(.0, size.height)
+                : Offset(size.width, size.height);
+    canvas.drawCircle(offset, radius, Paint()..color = color);
+  }
+
+  @override
+  bool shouldRepaint(QuarterCirclePainter oldDelegate) {
+    return color == oldDelegate.color && circleAlignment == oldDelegate.circleAlignment;
+  }
+}
+
 class Basic extends StatelessWidget {
   final StreamController _dividerController = StreamController<int>();
 
@@ -93,7 +185,7 @@ class Basic extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SpinningWheel(
-              Image.asset('assets/images/wheel-6-300.png'),
+              child: Image.asset('assets/images/wheel-6-300.png'),
               width: 310,
               height: 310,
               initialSpinAngle: _generateRandomAngle(),
@@ -104,8 +196,7 @@ class Basic extends StatelessWidget {
             ),
             StreamBuilder(
               stream: _dividerController.stream,
-              builder: (context, snapshot) =>
-                  snapshot.hasData ? BasicScore(snapshot.data) : Container(),
+              builder: (context, snapshot) => snapshot.hasData ? BasicScore(snapshot.data) : Container(),
             )
           ],
         ),
@@ -132,8 +223,7 @@ class BasicScore extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text('${labels[selected]}',
-        style: TextStyle(fontStyle: FontStyle.italic));
+    return Text('${labels[selected]}', style: TextStyle(fontStyle: FontStyle.italic));
   }
 }
 
@@ -157,7 +247,7 @@ class Roulette extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SpinningWheel(
-              Image.asset('assets/images/roulette-8-300.png'),
+              child: Image.asset('assets/images/roulette-8-300.png'),
               width: 310,
               height: 310,
               initialSpinAngle: _generateRandomAngle(),
@@ -166,8 +256,7 @@ class Roulette extends StatelessWidget {
               dividers: 8,
               onUpdate: _dividerController.add,
               onEnd: _dividerController.add,
-              secondaryImage:
-                  Image.asset('assets/images/roulette-center-300.png'),
+              secondaryImage: Image.asset('assets/images/roulette-center-300.png'),
               secondaryImageHeight: 110,
               secondaryImageWidth: 110,
               shouldStartOrStop: _wheelNotifier.stream,
@@ -175,14 +264,12 @@ class Roulette extends StatelessWidget {
             SizedBox(height: 30),
             StreamBuilder(
               stream: _dividerController.stream,
-              builder: (context, snapshot) =>
-                  snapshot.hasData ? RouletteScore(snapshot.data) : Container(),
+              builder: (context, snapshot) => snapshot.hasData ? RouletteScore(snapshot.data) : Container(),
             ),
             SizedBox(height: 30),
             new RaisedButton(
               child: new Text("Start"),
-              onPressed: () =>
-                  _wheelNotifier.sink.add(_generateRandomVelocity()),
+              onPressed: () => _wheelNotifier.sink.add(_generateRandomVelocity()),
             )
           ],
         ),
@@ -213,7 +300,6 @@ class RouletteScore extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text('${labels[selected]}',
-        style: TextStyle(fontStyle: FontStyle.italic, fontSize: 24.0));
+    return Text('${labels[selected]}', style: TextStyle(fontStyle: FontStyle.italic, fontSize: 24.0));
   }
 }
