@@ -13,33 +13,35 @@ class Pie extends StatelessWidget {
     return LayoutBuilder(builder: (context, consts) {
       final emptyPie = (children?.length ?? 0) == 0;
       final hasPieces = (children?.length ?? 0) > 1;
-      final size = math.max(consts.maxWidth, consts.maxHeight);
-      return Container(
-        width: size,
-        height: size,
-        clipBehavior: hasPieces ? Clip.none : Clip.antiAlias,
-        decoration: hasPieces ? null : BoxDecoration(shape: BoxShape.circle),
-        child: hasPieces
-            ? Stack(
-                overflow: Overflow.visible,
-                children: [
-                  for (var i = 0; i < children.length; i++)
-                    Transform.rotate(
-                      angle: (360 / children.length * (i + 0.5)) * math.pi / 180,
-                      origin: Offset.fromDirection(math.pi / 2, consts.maxWidth / 4),
-                      child: AspectRatio(
-                        aspectRatio: 2 / 1,
-                        child: PiePiece(
-                          pieces: children.length,
-                          child: children[i],
+      final size = math.min(consts.maxWidth, consts.maxHeight);
+      return Center(
+        child: Container(
+          width: size,
+          height: size,
+          clipBehavior: hasPieces ? Clip.none : Clip.antiAlias,
+          decoration: hasPieces ? null : BoxDecoration(shape: BoxShape.circle),
+          child: hasPieces
+              ? Stack(
+                  overflow: Overflow.visible,
+                  children: [
+                    for (var i = 0; i < children.length; i++)
+                      Transform.rotate(
+                        angle: (360 / children.length * (i + 0.5)) * math.pi / 180,
+                        origin: Offset.fromDirection(math.pi / 2, consts.maxWidth / 4),
+                        child: AspectRatio(
+                          aspectRatio: 2 / 1,
+                          child: PiePiece(
+                            pieces: children.length,
+                            child: children[i],
+                          ),
                         ),
                       ),
-                    ),
-                ],
-              )
-            : emptyPie
-                ? null
-                : children[0],
+                  ],
+                )
+              : emptyPie
+                  ? null
+                  : children[0],
+        ),
       );
     });
   }

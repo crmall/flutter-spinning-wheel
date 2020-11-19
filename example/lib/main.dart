@@ -136,6 +136,7 @@ class QuarterCirclePainter extends CustomPainter {
 
 class Basic extends StatelessWidget {
   final StreamController _dividerController = StreamController<int>();
+  final SpinningWheelController _spinController = SpinningWheelController();
 
   dispose() {
     _dividerController.close();
@@ -146,46 +147,54 @@ class Basic extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(backgroundColor: Color(0xffB0F9D2), elevation: 0.0),
       backgroundColor: Color(0xffB0F9D2),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SpinningWheel.custom(
-              children: List.generate(
-                4,
-                (index) => Container(
-                  width: 110,
-                  height: 110,
-                  color: Color.fromRGBO(math.Random().nextInt(255), math.Random().nextInt(255), math.Random().nextInt(255), 1),
-                  child: Text(
-                    (index + 1).toString(),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 30, backgroundColor: Colors.white),
+      body: GestureDetector(
+        onTap: () => _spinController.spin(4000),
+        child: Center(
+          child: Container(
+            width: 310,
+            height: 310,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SpinningWheel.custom(
+                  children: List.generate(
+                    4,
+                    (index) => Container(
+                      width: 110,
+                      height: 110,
+                      color: Color.fromRGBO(math.Random().nextInt(255), math.Random().nextInt(255), math.Random().nextInt(255), 1),
+                      child: Text(
+                        (index + 1).toString(),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 30, backgroundColor: Colors.white),
+                      ),
+                    ),
                   ),
+                  controller: _spinController,
+                  width: 310,
+                  height: 310,
+                  // initialSpinAngle: _generateRandomAngle(),
+                  spinResistance: 0.2,
+                  onUpdate: _dividerController.add,
+                  onEnd: _dividerController.add,
                 ),
-              ),
-              width: 310,
-              height: 310,
-              // initialSpinAngle: _generateRandomAngle(),
-              spinResistance: 0.2,
-              onUpdate: _dividerController.add,
-              onEnd: _dividerController.add,
+                // SpinningWheel(
+                //   child: Image.asset('assets/images/wheel-6-300.png'),
+                //   width: 310,
+                //   height: 310,
+                //   // initialSpinAngle: _generateRandomAngle(),
+                //   spinResistance: 0.2,
+                //   dividers: 6,
+                //   onUpdate: _dividerController.add,
+                //   onEnd: _dividerController.add,
+                // ),
+                StreamBuilder(
+                  stream: _dividerController.stream,
+                  builder: (context, snapshot) => snapshot.hasData ? BasicScore(snapshot.data) : Container(),
+                ),
+              ],
             ),
-            // SpinningWheel(
-            //   child: Image.asset('assets/images/wheel-6-300.png'),
-            //   width: 310,
-            //   height: 310,
-            //   // initialSpinAngle: _generateRandomAngle(),
-            //   spinResistance: 0.2,
-            //   dividers: 6,
-            //   onUpdate: _dividerController.add,
-            //   onEnd: _dividerController.add,
-            // ),
-            StreamBuilder(
-              stream: _dividerController.stream,
-              builder: (context, snapshot) => snapshot.hasData ? BasicScore(snapshot.data) : Container(),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -217,12 +226,10 @@ class BasicScore extends StatelessWidget {
 
 class Roulette extends StatelessWidget {
   final StreamController _dividerController = StreamController<int>();
-
-  final _wheelNotifier = StreamController<double>();
+  final SpinningWheelController _spinController = SpinningWheelController();
 
   dispose() {
     _dividerController.close();
-    _wheelNotifier.close();
   }
 
   @override
@@ -231,35 +238,39 @@ class Roulette extends StatelessWidget {
       appBar: AppBar(backgroundColor: Color(0xffDDC3FF), elevation: 0.0),
       backgroundColor: Color(0xffDDC3FF),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SpinningWheel(
-              child: Image.asset('assets/images/roulette-8-300.png'),
-              width: 310,
-              height: 310,
-              initialSpinAngle: _generateRandomAngle(),
-              spinResistance: 0.6,
-              canInteractWhileSpinning: false,
-              dividers: 8,
-              onUpdate: _dividerController.add,
-              onEnd: _dividerController.add,
-              secondaryImage: Image.asset('assets/images/roulette-center-300.png'),
-              secondaryImageHeight: 110,
-              secondaryImageWidth: 110,
-              shouldStartOrStop: _wheelNotifier.stream,
-            ),
-            SizedBox(height: 30),
-            StreamBuilder(
-              stream: _dividerController.stream,
-              builder: (context, snapshot) => snapshot.hasData ? RouletteScore(snapshot.data) : Container(),
-            ),
-            SizedBox(height: 30),
-            new RaisedButton(
-              child: new Text("Start"),
-              onPressed: () => _wheelNotifier.sink.add(_generateRandomVelocity()),
-            )
-          ],
+        child: Container(
+          width: 310,
+          height: 310,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SpinningWheel(
+                child: Image.asset('assets/images/roulette-8-300.png'),
+                width: 310,
+                height: 310,
+                initialSpinAngle: _generateRandomAngle(),
+                spinResistance: 0.6,
+                canInteractWhileSpinning: false,
+                dividers: 8,
+                onUpdate: _dividerController.add,
+                onEnd: _dividerController.add,
+                secondaryImage: Image.asset('assets/images/roulette-center-300.png'),
+                secondaryImageHeight: 110,
+                secondaryImageWidth: 110,
+                controller: _spinController,
+              ),
+              SizedBox(height: 30),
+              StreamBuilder(
+                stream: _dividerController.stream,
+                builder: (context, snapshot) => snapshot.hasData ? RouletteScore(snapshot.data) : Container(),
+              ),
+              SizedBox(height: 30),
+              new RaisedButton(
+                child: new Text("Start"),
+                onPressed: () => _spinController.spin(_generateRandomVelocity()),
+              )
+            ],
+          ),
         ),
       ),
     );

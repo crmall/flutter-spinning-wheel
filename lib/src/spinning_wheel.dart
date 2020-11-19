@@ -64,12 +64,14 @@ class SpinningWheel extends StatefulWidget {
   /// Stream<double> used to trigger an animation
   /// if triggered in an animation it will stop it, unless canInteractWhileSpinning is false
   /// the parameter is a double for pixelsPerSecond in axis Y, which defaults to 8000.0 as a medium-high velocity
-  final Stream<double> shouldStartOrStop;
+
+  final SpinningWheelController controller;
 
   SpinningWheel.custom({
     @required List<Widget> children,
     @required double width,
     @required double height,
+    SpinningWheelController controller,
     double initialSpinAngle: 0.0,
     double spinResistance: 0.5,
     bool canInteractWhileSpinning: true,
@@ -80,11 +82,12 @@ class SpinningWheel extends StatefulWidget {
     double secondaryImageLeft,
     SpinningWheelCallback onUpdate,
     SpinningWheelCallback onEnd,
-    Stream<double> shouldStartOrStop,
+    // Stream<double> shouldStartOrStop,
   }) : this(
           child: Pie(
             children: children,
           ),
+          controller: controller,
           width: width,
           height: height,
           dividers: children?.length ?? 0,
@@ -98,7 +101,7 @@ class SpinningWheel extends StatefulWidget {
           secondaryImageLeft: secondaryImageLeft,
           onUpdate: onUpdate,
           onEnd: onEnd,
-          shouldStartOrStop: shouldStartOrStop,
+          // shouldStartOrStop: shouldStartOrStop,
         );
 
   SpinningWheel({
@@ -106,6 +109,7 @@ class SpinningWheel extends StatefulWidget {
     @required this.width,
     @required this.height,
     @required this.dividers,
+    this.controller,
     this.initialSpinAngle: 0.0,
     this.spinResistance: 0.5,
     this.canInteractWhileSpinning: true,
@@ -116,7 +120,7 @@ class SpinningWheel extends StatefulWidget {
     this.secondaryImageLeft,
     this.onUpdate,
     this.onEnd,
-    this.shouldStartOrStop,
+    // this.shouldStartOrStop,
   })  : assert(width > 0.0 && height > 0.0),
         assert(spinResistance > 0.0 && spinResistance <= 1.0),
         assert(initialSpinAngle >= 0.0 && initialSpinAngle <= (2 * pi)),
@@ -192,9 +196,7 @@ class _SpinningWheelState extends State<SpinningWheel> with SingleTickerProvider
       if (status == AnimationStatus.completed) _stopAnimation();
     });
 
-    if (widget.shouldStartOrStop != null) {
-      _subscription = widget.shouldStartOrStop.listen(_startOrStop);
-    }
+    widget.controller?._attach(this);
   }
 
   _startOrStop(dynamic velocity) {
@@ -216,6 +218,11 @@ class _SpinningWheelState extends State<SpinningWheel> with SingleTickerProvider
   double get widthSecondaryImage => widget.secondaryImageWidth ?? widget.width;
 
   double get heightSecondaryImage => widget.secondaryImageHeight ?? widget.height;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -361,5 +368,27 @@ class _SpinningWheelState extends State<SpinningWheel> with SingleTickerProvider
       _subscription.cancel();
     }
     super.dispose();
+  }
+}
+
+class SpinningWheelController {
+  _SpinningWheelState _state;
+
+  bool get _isAttached => _state != null;
+
+  void _attach(_SpinningWheelState state) {
+    _state = state;
+  }
+
+  void spin(double velocity, {int dividerIndex}) {
+    if (!_isAttached) return;
+    if (_state._animationController.isAnimating) stop();
+    _state._startOrStop(velocity);
+  }
+
+  void stop() {
+    if (!_isAttached) return;
+    if (!_state._animationController.isAnimating) return;
+    _state._stopAnimation();
   }
 }
