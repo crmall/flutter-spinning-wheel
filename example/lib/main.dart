@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:math';
 
-import 'package:example/pie_clipper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_spinning_wheel/flutter_spinning_wheel.dart';
@@ -39,7 +38,7 @@ class MyHomePage extends StatelessWidget {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => CustomRoulette()),
+                      MaterialPageRoute(builder: (context) => Basic()),
                     );
                   }),
             ),
@@ -78,38 +77,126 @@ class MyHomePage extends StatelessWidget {
   }
 }
 
-class CustomRoulette extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        width: 200,
-        height: 200,
-        child: PiePart(
-          child: Container(
-            color: Colors.green,
-            width: 100,
-            height: 100,
-          ),
-        ),
-        // child: Triangle(
-        //   child: Container(
-        //     color: Colors.red,
-        //     width: 100,
-        //     height: 100,
-        //   ),
-        //   edge: Edge.TOP,
-        //   trianglePercentLeft: 0,
-        //   trianglePercentRight: 0.5,
-        //   trianglePercentEdge: 0.5,
-        // ),
-        // child: QuarterCircle(
-        //   circleAlignment: CircleAlignment.topLeft,
-        // ),
-      ),
-    );
-  }
-}
+// class CustomRoulette extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return SafeArea(
+//       child: Padding(
+//         padding: const EdgeInsets.all(24.0),
+//         child: Center(
+//           child: Stack(
+//             alignment: Alignment.center,
+//             children: [
+//               Container(
+//                 color: Colors.blue,
+//                 child: Pie(
+//                   children: List.generate(
+//                     10,
+//                     (index) => Container(
+//                       color: Color.fromRGBO(math.Random().nextInt(255), math.Random().nextInt(255), math.Random().nextInt(255), 1),
+//                       child: Padding(
+//                         padding: const EdgeInsets.only(bottom: 40.0, top: 10),
+//                         child: Image.network("http://simpleicon.com/wp-content/uploads/rocket.png"),
+//                       ),
+//                     ),
+//                   ),
+//                   // children: [
+//                   //   Container(
+//                   //     color: Colors.green,
+//                   //   ),
+//                   //   Container(
+//                   //     color: Colors.yellow,
+//                   //   ),
+//                   //   Container(
+//                   //     color: Colors.red,
+//                   //   ),
+//                   //   Container(
+//                   //     color: Colors.deepPurple,
+//                   //   ),
+//                   // ],
+//                 ),
+//               ),
+//
+//               // Positioned(
+//               //   top: 0,
+//               //   left: 0,
+//               //   right: 0,
+//               //   child: Container(
+//               //     height: MediaQuery.of(context).size.width - 48,
+//               //     decoration: new BoxDecoration(
+//               //       color: Colors.orange,
+//               //       shape: BoxShape.circle,
+//               //     ),
+//               //   ),
+//               // ),
+//
+//               // Positioned(
+//               //   top: 0,
+//               //   left: 0,
+//               //   right: 0,
+//               //   height: (MediaQuery.of(context).size.width - 48),
+//               //   child: Container(
+//               //     child: PiePiece(
+//               //       child: Container(
+//               //         color: Colors.green,
+//               //       ),
+//               //     ),
+//               //   ),
+//               // ),
+//
+//               // GridView.count(
+//               //   crossAxisCount: 2,
+//               //   padding: EdgeInsets.all(0),
+//               //   children: [
+//               //     RotatedBox(
+//               //       quarterTurns: -1,
+//               //       child: Container(
+//               //         child: PiePart(
+//               //           child: Container(
+//               //             color: Colors.green,
+//               //           ),
+//               //         ),
+//               //       ),
+//               //     ),
+//               //     RotatedBox(
+//               //       quarterTurns: 0,
+//               //       child: Container(
+//               //         child: PiePart(
+//               //           child: Container(
+//               //             color: Colors.green,
+//               //           ),
+//               //         ),
+//               //       ),
+//               //     ),
+//               //     RotatedBox(
+//               //       quarterTurns: 2,
+//               //       child: Container(
+//               //         child: PiePart(
+//               //           child: Container(
+//               //             color: Colors.green,
+//               //           ),
+//               //         ),
+//               //       ),
+//               //     ),
+//               //     RotatedBox(
+//               //       quarterTurns: 1,
+//               //       child: Container(
+//               //         child: PiePart(
+//               //           child: Container(
+//               //             color: Colors.green,
+//               //           ),
+//               //         ),
+//               //       ),
+//               //     ),
+//               //   ],
+//               // ),
+//             ],
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
 
 enum CircleAlignment {
   topLeft,
@@ -184,20 +271,41 @@ class Basic extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SpinningWheel(
-              child: Image.asset('assets/images/wheel-6-300.png'),
+            SpinningWheel.custom(
+              children: List.generate(
+                4,
+                (index) => Container(
+                  width: 110,
+                  height: 110,
+                  color: Color.fromRGBO(math.Random().nextInt(255), math.Random().nextInt(255), math.Random().nextInt(255), 1),
+                  child: Text(
+                    (index + 1).toString(),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 30, backgroundColor: Colors.white),
+                  ),
+                ),
+              ),
               width: 310,
               height: 310,
-              initialSpinAngle: _generateRandomAngle(),
+              // initialSpinAngle: _generateRandomAngle(),
               spinResistance: 0.2,
-              dividers: 6,
               onUpdate: _dividerController.add,
               onEnd: _dividerController.add,
             ),
+            // SpinningWheel(
+            //   child: Image.asset('assets/images/wheel-6-300.png'),
+            //   width: 310,
+            //   height: 310,
+            //   // initialSpinAngle: _generateRandomAngle(),
+            //   spinResistance: 0.2,
+            //   dividers: 6,
+            //   onUpdate: _dividerController.add,
+            //   onEnd: _dividerController.add,
+            // ),
             StreamBuilder(
               stream: _dividerController.stream,
               builder: (context, snapshot) => snapshot.hasData ? BasicScore(snapshot.data) : Container(),
-            )
+            ),
           ],
         ),
       ),
@@ -223,7 +331,8 @@ class BasicScore extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text('${labels[selected]}', style: TextStyle(fontStyle: FontStyle.italic));
+    // return Text('${selected.toString()}', style: TextStyle(fontStyle: FontStyle.italic));
+    return Text('${selected.toString()} - ${labels[selected]}', style: TextStyle(fontStyle: FontStyle.italic));
   }
 }
 

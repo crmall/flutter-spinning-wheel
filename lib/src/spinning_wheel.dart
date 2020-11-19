@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_spinning_wheel/src/pie.dart';
 import 'package:flutter_spinning_wheel/src/utils.dart';
 
 typedef SpinningWheelCallback = void Function(int currentDivider);
@@ -64,6 +65,41 @@ class SpinningWheel extends StatefulWidget {
   /// if triggered in an animation it will stop it, unless canInteractWhileSpinning is false
   /// the parameter is a double for pixelsPerSecond in axis Y, which defaults to 8000.0 as a medium-high velocity
   final Stream<double> shouldStartOrStop;
+
+  SpinningWheel.custom({
+    @required List<Widget> children,
+    @required double width,
+    @required double height,
+    double initialSpinAngle: 0.0,
+    double spinResistance: 0.5,
+    bool canInteractWhileSpinning: true,
+    Image secondaryImage,
+    double secondaryImageHeight,
+    double secondaryImageWidth,
+    double secondaryImageTop,
+    double secondaryImageLeft,
+    SpinningWheelCallback onUpdate,
+    SpinningWheelCallback onEnd,
+    Stream<double> shouldStartOrStop,
+  }) : this(
+          child: Pie(
+            children: children,
+          ),
+          width: width,
+          height: height,
+          dividers: children?.length ?? 0,
+          initialSpinAngle: initialSpinAngle,
+          spinResistance: spinResistance,
+          canInteractWhileSpinning: canInteractWhileSpinning,
+          secondaryImage: secondaryImage,
+          secondaryImageHeight: secondaryImageHeight,
+          secondaryImageWidth: secondaryImageWidth,
+          secondaryImageTop: secondaryImageTop,
+          secondaryImageLeft: secondaryImageLeft,
+          onUpdate: onUpdate,
+          onEnd: onEnd,
+          shouldStartOrStop: shouldStartOrStop,
+        );
 
   SpinningWheel({
     @required this.child,
@@ -184,8 +220,8 @@ class _SpinningWheelState extends State<SpinningWheel> with SingleTickerProvider
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: widget.height,
-      width: widget.width,
+      // height: widget.height,
+      // width: widget.width,
       child: Stack(
         clipBehavior: Clip.none,
         overflow: Overflow.visible,
