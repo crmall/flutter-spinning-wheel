@@ -131,8 +131,8 @@ class SpinningWheel extends StatefulWidget {
 }
 
 class _SpinningWheelState extends State<SpinningWheel> with SingleTickerProviderStateMixin {
-  AnimationController _animationController;
   Animation<double> _animation;
+  AnimationController _animationController;
 
   // we need to store if has the widget behaves differently depending on the status
   // AnimationStatus _animationStatus = AnimationStatus.dismissed;
@@ -218,11 +218,6 @@ class _SpinningWheelState extends State<SpinningWheel> with SingleTickerProvider
   double get widthSecondaryImage => widget.secondaryImageWidth ?? widget.width;
 
   double get heightSecondaryImage => widget.secondaryImageHeight ?? widget.height;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -376,6 +371,8 @@ class SpinningWheelController {
 
   bool get _isAttached => _state != null;
 
+  bool get isSpinning => _isAttached && _state._animationController.isAnimating;
+
   void _attach(_SpinningWheelState state) {
     _state = state;
   }
@@ -383,6 +380,13 @@ class SpinningWheelController {
   void spin(double velocity, {int dividerIndex}) {
     if (!_isAttached) return;
     if (_state._animationController.isAnimating) stop();
+    if (dividerIndex != null && dividerIndex >= 1 && dividerIndex <= _state.widget.dividers) {
+      final dividerSpinAngle =
+          dividerIndex == _state.widget.dividers ? 0 : (((_state.widget.dividers - dividerIndex) / _state.widget.dividers) * pi * 2);
+      final dividerInternalAngle = (pi * 2 / _state.widget.dividers) * max(0.02, min(0.98, Random().nextDouble()));
+      _state._currentDistance = 0;
+      _state._initialSpinAngle = dividerSpinAngle + dividerInternalAngle;
+    }
     _state._startOrStop(velocity);
   }
 
