@@ -1,12 +1,11 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
-export "FLUTTER_ROOT=/private/etc/flutter"
-export "FLUTTER_APPLICATION_PATH=/Users/ewertonrp/Projects/Github/flutter-spinning-wheel/example"
+export "FLUTTER_ROOT=/Users/dev-crmall/Development/flutter"
+export "FLUTTER_APPLICATION_PATH=/Users/dev-crmall/Development/crmall/github/flutter-spinning-wheel/example"
+export "COCOAPODS_PARALLEL_CODE_SIGN=true"
 export "FLUTTER_TARGET=lib/main.dart"
 export "FLUTTER_BUILD_DIR=build"
 export "SYMROOT=${SOURCE_ROOT}/../build/ios"
-export "OTHER_LDFLAGS=$(inherited) -framework Flutter"
-export "FLUTTER_FRAMEWORK_DIR=/private/etc/flutter/bin/cache/artifacts/engine/ios"
 export "FLUTTER_BUILD_NAME=1.0.0"
 export "FLUTTER_BUILD_NUMBER=1"
 export "DART_OBFUSCATION=false"
