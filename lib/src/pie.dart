@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 class Pie extends StatelessWidget {
-  final List<Widget>? children;
+  final List<Widget> children;
 
-  const Pie({Key? key, this.children}) : super(key: key);
+  const Pie({Key key, this.children}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -24,15 +24,15 @@ class Pie extends StatelessWidget {
               ? Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    for (var i = 0; i < children!.length; i++)
+                    for (var i = 0; i < children.length; i++)
                       Transform.rotate(
-                        angle: (360 / children!.length * (i + 0.5)) * math.pi / 180,
+                        angle: (360 / children.length * (i + 0.5)) * math.pi / 180,
                         origin: Offset.fromDirection(math.pi / 2, consts.maxWidth / 4),
                         child: AspectRatio(
                           aspectRatio: 2 / 1,
                           child: PiePiece(
-                            pieces: children!.length,
-                            child: children![i],
+                            pieces: children.length,
+                            child: children[i],
                           ),
                         ),
                       ),
@@ -40,7 +40,7 @@ class Pie extends StatelessWidget {
                 )
               : emptyPie
                   ? null
-                  : children![0],
+                  : children[0],
         ),
       );
     });
@@ -48,11 +48,11 @@ class Pie extends StatelessWidget {
 }
 
 class PiePiece extends StatelessWidget {
-  final Widget? child;
+  final Widget child;
   final int pieces;
 
   const PiePiece({
-    Key? key,
+    Key key,
     this.child,
     this.pieces = 2,
   }) : super(key: key);
