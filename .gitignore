@@ -26,6 +26,9 @@
 .pub-cache/
 .pub/
 /build/
+/example/ios/Flutter/
+/example/pubspec.lock
+pubspec.lock
 
 # Android related
 **/android/**/gradle-wrapper.jar
