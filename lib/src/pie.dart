@@ -22,7 +22,7 @@ class Pie extends StatelessWidget {
           decoration: hasPieces ? null : BoxDecoration(shape: BoxShape.circle),
           child: hasPieces
               ? Stack(
-                  overflow: Overflow.visible,
+                  clipBehavior: Clip.none,
                   children: [
                     for (var i = 0; i < children.length; i++)
                       Transform.rotate(

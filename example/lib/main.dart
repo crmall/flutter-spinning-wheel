@@ -199,8 +199,6 @@ class Basic extends StatelessWidget {
       ),
     );
   }
-
-  double _generateRandomAngle() => Random().nextDouble() * pi * 2;
 }
 
 class BasicScore extends StatelessWidget {

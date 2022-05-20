@@ -226,7 +226,6 @@ class _SpinningWheelState extends State<SpinningWheel> with SingleTickerProvider
       // width: widget.width,
       child: Stack(
         clipBehavior: Clip.none,
-        overflow: Overflow.visible,
         children: [
           Positioned.fill(
             child: GestureDetector(
