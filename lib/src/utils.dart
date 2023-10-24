@@ -1,8 +1,6 @@
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:meta/meta.dart';
-
 const Map<int, Offset> cuadrants = const {
   1: Offset(0.5, 0.5),
   2: Offset(-0.5, 0.5),
@@ -21,12 +19,16 @@ class SpinVelocity {
   double get width_0_5 => width / 2;
   double get height_0_5 => height / 2;
 
-  SpinVelocity({@required this.height, @required this.width});
+  SpinVelocity({required this.height, required this.width});
 
   double getVelocity(Offset position, Offset pps) {
-    var cuadrantIndex = _getCuadrantFromOffset(position);
-    var cuadrant = cuadrants[cuadrantIndex];
-    return (cuadrant.dx * pps.dx) + (cuadrant.dy * pps.dy);
+    final cuadrantIndex = _getCuadrantFromOffset(position);
+    final cuadrant = cuadrants[cuadrantIndex];
+    if (cuadrant != null) {
+      return (cuadrant.dx * pps.dx) + (cuadrant.dy * pps.dy);
+    } else {
+      return 0;
+    }
   }
 
   /// transforms (x,y) into radians assuming we start at positive y axis as 0
@@ -49,7 +51,7 @@ class SpinVelocity {
 class NonUniformCircularMotion {
   final double resistance;
 
-  NonUniformCircularMotion({@required this.resistance});
+  NonUniformCircularMotion({required this.resistance});
 
   /// returns the acceleration based on the resistance provided in the constructor
   double get acceleration => resistance * -7 * pi;

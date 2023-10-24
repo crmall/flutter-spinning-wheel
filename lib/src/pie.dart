@@ -6,13 +6,13 @@ import 'package:flutter/widgets.dart';
 class Pie extends StatelessWidget {
   final List<Widget> children;
 
-  const Pie({Key key, this.children}) : super(key: key);
+  const Pie({Key? key, required this.children}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, consts) {
-      final emptyPie = (children?.length ?? 0) == 0;
-      final hasPieces = (children?.length ?? 0) > 1;
+      final emptyPie = (children.length) == 0;
+      final hasPieces = (children.length) > 1;
       final size = math.min(consts.maxWidth, consts.maxHeight);
       return Center(
         child: Container(
@@ -52,8 +52,8 @@ class PiePiece extends StatelessWidget {
   final int pieces;
 
   const PiePiece({
-    Key key,
-    this.child,
+    Key? key,
+    required this.child,
     this.pieces = 2,
   }) : super(key: key);
 
