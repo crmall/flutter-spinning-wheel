@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -6,7 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_spinning_wheel/flutter_spinning_wheel.dart';
 
 void main() {
-  SystemChrome.setEnabledSystemUIOverlays([]);
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
   runApp(MyApp());
 }
 
@@ -61,11 +62,13 @@ class MyHomePage extends StatelessWidget {
   }
 
   Widget buildNavigationButton({String text, Function onPressedFn}) {
-    return FlatButton(
-      color: Color.fromRGBO(255, 255, 255, 0.3),
-      textColor: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(50.0),
+    return TextButton(
+      style: ButtonStyle(
+        backgroundColor: MaterialStateProperty.all(Color.fromRGBO(255, 255, 255, 0.3)),
+        foregroundColor: MaterialStateProperty.all(Colors.white),
+        shape: MaterialStateProperty.all(RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(50.0),
+        )),
       ),
       onPressed: onPressedFn,
       child: Text(
@@ -76,8 +79,66 @@ class MyHomePage extends StatelessWidget {
   }
 }
 
+enum CircleAlignment {
+  topLeft,
+  topRight,
+  bottomLeft,
+  bottomRight,
+}
+
+class QuarterCircle extends StatelessWidget {
+  final CircleAlignment circleAlignment;
+  final Color color;
+
+  const QuarterCircle({
+    this.color = Colors.grey,
+    this.circleAlignment = CircleAlignment.topLeft,
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.expand(
+      child: ClipRect(
+        child: CustomPaint(
+          painter: QuarterCirclePainter(
+            circleAlignment: circleAlignment,
+            color: color,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class QuarterCirclePainter extends CustomPainter {
+  final CircleAlignment circleAlignment;
+  final Color color;
+
+  const QuarterCirclePainter({this.circleAlignment, this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final radius = math.min(size.height, size.width);
+    final offset = circleAlignment == CircleAlignment.topLeft
+        ? Offset(.0, .0)
+        : circleAlignment == CircleAlignment.topRight
+            ? Offset(size.width, .0)
+            : circleAlignment == CircleAlignment.bottomLeft
+                ? Offset(.0, size.height)
+                : Offset(size.width, size.height);
+    canvas.drawCircle(offset, radius, Paint()..color = color);
+  }
+
+  @override
+  bool shouldRepaint(QuarterCirclePainter oldDelegate) {
+    return color == oldDelegate.color && circleAlignment == oldDelegate.circleAlignment;
+  }
+}
+
 class Basic extends StatelessWidget {
   final StreamController _dividerController = StreamController<int>();
+  final SpinningWheelController _spinController = SpinningWheelController();
 
   dispose() {
     _dividerController.close();
@@ -88,32 +149,58 @@ class Basic extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(backgroundColor: Color(0xffB0F9D2), elevation: 0.0),
       backgroundColor: Color(0xffB0F9D2),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SpinningWheel(
-              Image.asset('assets/images/wheel-6-300.png'),
-              width: 310,
-              height: 310,
-              initialSpinAngle: _generateRandomAngle(),
-              spinResistance: 0.2,
-              dividers: 6,
-              onUpdate: _dividerController.add,
-              onEnd: _dividerController.add,
+      body: GestureDetector(
+        onTap: () => _spinController.spin(4000),
+        child: Center(
+          child: Container(
+            width: 310,
+            height: 310,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SpinningWheel.custom(
+                  children: List.generate(
+                    4,
+                    (index) => Container(
+                      width: 110,
+                      height: 110,
+                      color: Color.fromRGBO(math.Random().nextInt(255), math.Random().nextInt(255), math.Random().nextInt(255), 1),
+                      child: Text(
+                        (index + 1).toString(),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 30, backgroundColor: Colors.white),
+                      ),
+                    ),
+                  ),
+                  controller: _spinController,
+                  width: 310,
+                  height: 310,
+                  // initialSpinAngle: _generateRandomAngle(),
+                  spinResistance: 0.2,
+                  onUpdate: _dividerController.add,
+                  onEnd: _dividerController.add,
+                ),
+                // SpinningWheel(
+                //   child: Image.asset('assets/images/wheel-6-300.png'),
+                //   width: 310,
+                //   height: 310,
+                //   // initialSpinAngle: _generateRandomAngle(),
+                //   spinResistance: 0.2,
+                //   dividers: 6,
+                //   onUpdate: _dividerController.add,
+                //   onEnd: _dividerController.add,
+                // ),
+                StreamBuilder(
+                  stream: _dividerController.stream,
+                  builder: (context, snapshot) => snapshot.hasData ? BasicScore(snapshot.data) : Container(),
+                ),
+              ],
             ),
-            StreamBuilder(
-              stream: _dividerController.stream,
-              builder: (context, snapshot) =>
-                  snapshot.hasData ? BasicScore(snapshot.data) : Container(),
-            )
-          ],
+          ),
         ),
       ),
     );
   }
-
-  double _generateRandomAngle() => Random().nextDouble() * pi * 2;
 }
 
 class BasicScore extends StatelessWidget {
@@ -132,19 +219,17 @@ class BasicScore extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text('${labels[selected]}',
-        style: TextStyle(fontStyle: FontStyle.italic));
+    // return Text('${selected.toString()}', style: TextStyle(fontStyle: FontStyle.italic));
+    return Text('${selected.toString()} - ${labels[selected]}', style: TextStyle(fontStyle: FontStyle.italic));
   }
 }
 
 class Roulette extends StatelessWidget {
   final StreamController _dividerController = StreamController<int>();
-
-  final _wheelNotifier = StreamController<double>();
+  final SpinningWheelController _spinController = SpinningWheelController();
 
   dispose() {
     _dividerController.close();
-    _wheelNotifier.close();
   }
 
   @override
@@ -153,38 +238,39 @@ class Roulette extends StatelessWidget {
       appBar: AppBar(backgroundColor: Color(0xffDDC3FF), elevation: 0.0),
       backgroundColor: Color(0xffDDC3FF),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SpinningWheel(
-              Image.asset('assets/images/roulette-8-300.png'),
-              width: 310,
-              height: 310,
-              initialSpinAngle: _generateRandomAngle(),
-              spinResistance: 0.6,
-              canInteractWhileSpinning: false,
-              dividers: 8,
-              onUpdate: _dividerController.add,
-              onEnd: _dividerController.add,
-              secondaryImage:
-                  Image.asset('assets/images/roulette-center-300.png'),
-              secondaryImageHeight: 110,
-              secondaryImageWidth: 110,
-              shouldStartOrStop: _wheelNotifier.stream,
-            ),
-            SizedBox(height: 30),
-            StreamBuilder(
-              stream: _dividerController.stream,
-              builder: (context, snapshot) =>
-                  snapshot.hasData ? RouletteScore(snapshot.data) : Container(),
-            ),
-            SizedBox(height: 30),
-            new RaisedButton(
-              child: new Text("Start"),
-              onPressed: () =>
-                  _wheelNotifier.sink.add(_generateRandomVelocity()),
-            )
-          ],
+        child: Container(
+          width: 310,
+          height: 310,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SpinningWheel(
+                child: Image.asset('assets/images/roulette-8-300.png'),
+                width: 310,
+                height: 310,
+                initialSpinAngle: _generateRandomAngle(),
+                spinResistance: 0.6,
+                canInteractWhileSpinning: false,
+                dividers: 8,
+                onUpdate: _dividerController.add,
+                onEnd: _dividerController.add,
+                secondaryImage: Image.asset('assets/images/roulette-center-300.png'),
+                secondaryImageHeight: 110,
+                secondaryImageWidth: 110,
+                controller: _spinController,
+              ),
+              SizedBox(height: 30),
+              StreamBuilder(
+                stream: _dividerController.stream,
+                builder: (context, snapshot) => snapshot.hasData ? RouletteScore(snapshot.data) : Container(),
+              ),
+              SizedBox(height: 30),
+              new ElevatedButton(
+                child: new Text("Start"),
+                onPressed: () => _spinController.spin(_generateRandomVelocity()),
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -213,7 +299,6 @@ class RouletteScore extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text('${labels[selected]}',
-        style: TextStyle(fontStyle: FontStyle.italic, fontSize: 24.0));
+    return Text('${labels[selected]}', style: TextStyle(fontStyle: FontStyle.italic, fontSize: 24.0));
   }
 }
