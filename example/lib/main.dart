@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_spinning_wheel/flutter_spinning_wheel.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
   runApp(MyApp());
 }
@@ -61,7 +62,7 @@ class MyHomePage extends StatelessWidget {
     );
   }
 
-  Widget buildNavigationButton({String text, Function onPressedFn}) {
+  Widget buildNavigationButton(String text, VoidCallback? onPressedFn) {
     return TextButton(
       style: ButtonStyle(
         backgroundColor: MaterialStateProperty.all(Color.fromRGBO(255, 255, 255, 0.3)),
@@ -93,7 +94,7 @@ class QuarterCircle extends StatelessWidget {
   const QuarterCircle({
     this.color = Colors.grey,
     this.circleAlignment = CircleAlignment.topLeft,
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
@@ -102,8 +103,8 @@ class QuarterCircle extends StatelessWidget {
       child: ClipRect(
         child: CustomPaint(
           painter: QuarterCirclePainter(
-            circleAlignment: circleAlignment,
-            color: color,
+            circleAlignment,
+            color,
           ),
         ),
       ),
@@ -115,7 +116,7 @@ class QuarterCirclePainter extends CustomPainter {
   final CircleAlignment circleAlignment;
   final Color color;
 
-  const QuarterCirclePainter({this.circleAlignment, this.color});
+  const QuarterCirclePainter(this.circleAlignment, this.color);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -192,7 +193,7 @@ class Basic extends StatelessWidget {
                 // ),
                 StreamBuilder(
                   stream: _dividerController.stream,
-                  builder: (context, snapshot) => snapshot.hasData ? BasicScore(snapshot.data) : Container(),
+                  builder: (context, snapshot) => snapshot.hasData && snapshot.data is int ? BasicScore(snapshot.data as int) : Container(),
                 ),
               ],
             ),
@@ -262,7 +263,7 @@ class Roulette extends StatelessWidget {
               SizedBox(height: 30),
               StreamBuilder(
                 stream: _dividerController.stream,
-                builder: (context, snapshot) => snapshot.hasData ? RouletteScore(snapshot.data) : Container(),
+                builder: (context, snapshot) => snapshot.hasData && snapshot.data is int ? RouletteScore(snapshot.data as int) : Container(),
               ),
               SizedBox(height: 30),
               new ElevatedButton(
