@@ -377,15 +377,18 @@ class SpinningWheelController {
     _state = state;
   }
 
-  void spin(double velocity, {int? dividerIndex}) {
+  void spin(double velocity, {int? dividerIndex, double dividerDistance = 0.05}) {
     if (!_isAttached) return;
     if (_state?._animationController.isAnimating ?? false) stop();
     if (_state != null) {
       final state = _state!;
       if (dividerIndex != null && dividerIndex >= 1 && dividerIndex <= state.widget.dividers) {
+        if (dividerDistance < 0) dividerDistance = 0;
+        if (dividerDistance > 0.5) dividerDistance = 0.5;
+        final randomDistance = dividerDistance + (Random().nextDouble() * (1 - dividerDistance * 2));
         final dividerSpinAngle =
         dividerIndex == state.widget.dividers ? 0 : (((state.widget.dividers - dividerIndex) / state.widget.dividers) * pi * 2);
-        final dividerInternalAngle = (pi * 2 / state.widget.dividers) * max(0.02, min(0.98, Random().nextDouble()));
+        final dividerInternalAngle = (pi * 2 / state.widget.dividers) * randomDistance;
         _state?._currentDistance = 0;
         _state?._initialSpinAngle = dividerSpinAngle + dividerInternalAngle;
       }
